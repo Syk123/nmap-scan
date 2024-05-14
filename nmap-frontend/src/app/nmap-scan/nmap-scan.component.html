@@ -1,0 +1,26 @@
+<section>
+    <form>
+        <input type="text" placeholder="Enter nmap command">
+        <button class="primary" type="button" (click)="loadData()"> Scan! </button>
+    </form>
+</section>
+<section>
+    <table>
+        <thead>
+            <tr>
+              <th>ID</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let element of dataSource">
+              <td>{{ element.id }}</td>
+              <td>{{ element.status }}</td>
+              <td>
+                <button *ngIf="element.status === 'completed'" (click)="downloadFile(element.fileUrl)">Download</button>
+              </td>
+            </tr>
+          </tbody>
+    </table>
+</section>
