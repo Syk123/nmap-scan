@@ -1,16 +1,41 @@
-const OPTIONS = [
-    "-sP", "-sL", "-sn", "-sS", "-sT", "-sU", "-sA", "-sW", "-sM", "-sN", "-sF", 
-    "-sX", "-sI", "-sY", "-sZ", "-sO", "-b", "-sV", "-sC", "-O", "-T0", "-T1", 
-    "-T2", "-T3", "-T4", "-T5", "-p", "-F", "-oN", "-oX", "-oS", "-oG", "-oA", 
-    "-A", "-v", "-d", "-6","--script", "--min-hostgroup", "--max-hostgroup", "--min-parallelism",
-    "--max-parallelism", "--min-rtt-timeout", "--max-rtt-timeout",
-    "--initial-rtt-timeout", "--max-retries", "--host-timeout", "--scan-delay",
-    "--max-scan-delay", "--min-rate", "--max-rate", "--disable-arp-ping",
-    "--reason", "--open", "--packet-trace", "--iflist", "--append-output",
-    "--resume", "--stylesheet", "--script-trace", "--version-intensity",
-    "--version-light", "--version-all", "--version-trace", "--webxml",
-    "--privileged", "--unprivileged", "--release-memory", "--send-eth",
-    "--send-ip", "--badsum", "--adler32", "--crc32"]
+import shellEscape from 'shell-escape'
+import { isIP, isFQDN, isMACAddress } from 'validator'
+const allowedOptions: { [key: string]: boolean | ((value: string) => boolean) } = {
+    // Scan types
+    '-sS': true,
+    '-sT': true,
+    '-sU': true,
+    '-sP': true,
+    '-sV': true,
+    '-O': true,
+    '-A': true,
+    '-sC': true,
+
+    //Port specifications
+    '-p': (value: string) => /^(\d+(-\d+)?(,\d+(-\d+)?)*)$/.test(value),
+
+    // Output formats
+    '-oN': (value: string) => /^[\w,\s-]+\.[A-Za-z]{3}$/.test(value),
+    '-oX': (value: string) => /^[\w,\s-]+\.[A-Za-z]{3}$/.test(value),
+    '-oG': (value: string) => /^[\w,\s-]+\.[A-Za-z]{3}$/.test(value),
+    '-oA': (value: string) => /^[\w,\s-]+\.[A-Za-z]{3}$/.test(value),
+
+    // Host discovery
+    '-T0': true,
+    '-T1': true,
+    '-T2': true,
+    '-T3': true,
+    '-T4': true,
+    '-T5': true,
+
+    //Others
+    '--open': true,
+    '-6': true,
+    '--packet-trace': true,
+    '--append-output': true,
+    '-D': (value: string) => /^(RND:\d+|\d+\.\d+\.\d+\.\d+(,\d+\.\d+\.\d+\.\d+)*)$/.test(value),
+    '-g': (value: string) => /^\d+$/.test(value) && parseInt(value, 10) > 0 && parseInt(value, 10) < 65536
+}
 
 export class ValidationError extends Error {
     constructor(msg: string) {
@@ -19,17 +44,47 @@ export class ValidationError extends Error {
     }
 }
 
-export let validateCommand = (command: string): ValidationError | boolean => {
-    let split_command = command.split(" ")
-    if (split_command[0] !== "nmap" ) {
-        throw new ValidationError("Command should start with nmap")
+export let sanitizeCommand = (command: string): string => {
+    let parts = command.split(" ")
+    const sanitizedParts: string[] = []
+
+    let target: string = ""
+
+    for (let i = 0; i < parts.length; i++) {
+        const part = parts[i]
+        if (allowedOptions[part]) {
+            sanitizedParts.push(shellEscape([part]))
+
+            if (typeof allowedOptions[part] === 'function') {
+                const value = parts[i + 1]
+                const validatingFunc = allowedOptions[part] as ((value: string) => boolean)
+                if (value && validatingFunc(value)) {
+                    sanitizedParts.push(shellEscape([value]))
+                    i++
+                } else {
+                    throw new ValidationError(`Invalid value for option: ${part}`)
+                }
+
+            } else if (typeof allowedOptions[part] === 'boolean') {
+                continue
+            }
+        }
+        else if (!part.startsWith('-')) {
+            if (validateTarget(part)) {
+                target = part
+            } else {
+                throw new ValidationError(`Invalid target specified: ${part}`)
+            }
+        } else {
+            throw new ValidationError(`Unsupported option: ${part}`)
+        }
+
     }
 
-    for (let i in split_command) {
-        i = i.split("=")[0]
-        if (i.startsWith("-") && !OPTIONS.includes(i)) {
-            throw new ValidationError(`Unexpected option: ${i}`)
-        }
-    }
-    return true
-}   
+    sanitizedParts.push(shellEscape([target]))
+    return "nmap " + sanitizedParts.join(" ")
+}
+
+let validateTarget = (target: string) => {
+    return isIP(target) || isFQDN(target) || isMACAddress(target)
+}

@@ -1,26 +1,29 @@
 <section>
     <form>
-        <input type="text" placeholder="Enter nmap command">
-        <button class="primary" type="button" (click)="loadData()"> Scan! </button>
+        <span><strong> nmap </strong> </span>
+        <input type="text" placeholder="Enter nmap command" [(ngModel)]="scanCommand"
+            [ngModelOptions]="{ standalone: true }">
+        <button class="primary" type="button" (click)="submitScan()"> Scan! </button>
     </form>
 </section>
 <section>
     <table>
         <thead>
             <tr>
-              <th>ID</th>
-              <th>Status</th>
-              <th>Actions</th>
+                <th>ID</th>
+                <th>Status</th>
+                <th>Actions</th>
             </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let element of dataSource">
-              <td>{{ element.id }}</td>
-              <td>{{ element.status }}</td>
-              <td>
-                <button *ngIf="element.status === 'completed'" (click)="downloadFile(element.fileUrl)">Download</button>
-              </td>
+        </thead>
+        <tbody>
+            <tr *ngFor="let element of results">
+                <td>{{ element.jobId }}</td>
+                <td>{{ element.status }}</td>
+                <td>
+                    <button *ngIf="element.status === 'complete'"
+                        (click)="downloadFile(element.jobId)">Download</button>
+                </td>
             </tr>
-          </tbody>
+        </tbody>
     </table>
 </section>
