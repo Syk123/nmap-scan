@@ -2,8 +2,7 @@ import express, { Express, Request, Response } from "express"
 import { exec as execCb } from "node:child_process"
 import { promisify } from "node:util"
 import { sanitizeCommand, ValidationError } from "./lib/validateNmapCommand"
-import { promises as fs } from 'fs'
-import cors from 'cors'
+
 const app: Express = express()
 const PORT = 3000
 const OUTPUT_DIR = "../raw_outputs"
@@ -80,3 +79,5 @@ app.listen(PORT, () => {
 let serializedJobs = (jobs: Jobs): ScanResponse[] => {
     return Object.keys(jobs).map((key) => ({ jobId: key, status: jobs[key]["status"] }))
 }
+
+export default app
