@@ -5,7 +5,6 @@ import { sanitizeCommand, ValidationError } from "./lib/validateNmapCommand"
 
 const app: Express = express()
 const PORT = 3000
-const OUTPUT_DIR = "../raw_outputs"
 
 const exec = promisify(execCb)
 
@@ -43,7 +42,7 @@ app.post("/scan", async (req: Request, res: Response) => {
         const body = req.body as ScanRequest
         const command = body.command
         const jobId = body.jobId
-        const sanitizedCommand = sanitizeCommand(command) + ` -oX dist/raw_outputs/${jobId}_scan_result.xml`
+        const sanitizedCommand = sanitizeCommand(command) + ` -oX dist/${jobId}_scan_result.xml`
         exec(sanitizedCommand).then(async (_: any) => {
         }).then(() => {
             jobs[jobId] = { status: "complete" }
@@ -67,7 +66,7 @@ app.get("/jobs", (req: Request, res: Response) => {
 
 app.get("/download", (req: Request, res: Response) => {
     const jobId = req.query.jobId
-    const file = `${__dirname}/raw_outputs/${jobId}_scan_result.xml`
+    const file = `${__dirname}/${jobId}_scan_result.xml`
     console.log(file)
     res.download(file)
 })
