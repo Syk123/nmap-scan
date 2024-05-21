@@ -4,9 +4,8 @@
   "description": "Backend for nmap scan",
   "main": "server.ts",
   "scripts": {
-    "build": "npx tsc",
+    "build": "tsc",
     "start": "npx tsc && node dist/server.js",
-    "dev": "nodemon src/index.ts",
     "test": "npx tsc && jest --detectOpenHandles"
   },
   "author": "Suyash Kothari",

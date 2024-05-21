@@ -1,12 +1,16 @@
 FROM node:lts-alpine
 WORKDIR /app
 
+RUN apk add --no-cache nmap
+
 COPY package*.json ./
 COPY tsconfig.json ./
-COPY ./src ./src
-COPY ./dist ./dist
 
 RUN npm install
+
+COPY ./src ./src
+COPY server.ts server.ts
+
 RUN npm run build
 
 EXPOSE 3000
