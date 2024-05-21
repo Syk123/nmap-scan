@@ -4,7 +4,6 @@ import { promisify } from "node:util"
 import { sanitizeCommand, ValidationError } from "./lib/validateNmapCommand"
 
 const app: Express = express()
-const PORT = 3000
 
 const exec = promisify(execCb)
 
@@ -70,10 +69,6 @@ app.get("/download", (req: Request, res: Response) => {
     console.log(file)
     res.download(file)
 })
-
-app.listen(PORT, () => {
-    console.log(`[server]: Server is running at http://localhost:${PORT}`)
-});
 
 let serializedJobs = (jobs: Jobs): ScanResponse[] => {
     return Object.keys(jobs).map((key) => ({ jobId: key, status: jobs[key]["status"] }))
