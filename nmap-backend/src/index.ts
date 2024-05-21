@@ -36,7 +36,7 @@ app.get("/", (req: Request, res: Response) => {
     res.send("Express + TypeScript Server")
 });
 
-app.post("/scan", async (req: Request, res: Response) => {
+app.post("/scan", (req: Request, res: Response) => {
     try {
         const body = req.body as ScanRequest
         const command = body.command
@@ -51,10 +51,10 @@ app.post("/scan", async (req: Request, res: Response) => {
     }
     catch (e) {
         if (e instanceof ValidationError) {
-            return res.status(400).send(`${e.name}: ${e.message}. Request: ${JSON.stringify(req.body)}`)
+            return res.status(400).send(`${e.name}: ${e.message}`)
         }
         else {
-            return res.status(500).send(`InternalError: ${e}. Request: ${JSON.stringify(req.body)}`)
+            return res.status(500).send(`InternalError: ${e}`)
         }
     }
 })
